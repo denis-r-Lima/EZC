@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { Component } from "react"
 import {
   View,
   Text,
@@ -7,15 +7,15 @@ import {
   ScrollView,
   Dimensions,
   Animated,
-} from "react-native";
-import axios from "axios";
-import AsyncStorage from "@react-native-community/async-storage";
-import { PanGestureHandler, State } from "react-native-gesture-handler";
+} from "react-native"
+import axios from "axios"
+import AsyncStorage from "@react-native-community/async-storage"
+import { PanGestureHandler, State } from "react-native-gesture-handler"
 
-import Keyboard from "../../keyboard";
-import { currencyName } from "./units";
+import Keyboard from "../../keyboard"
+import { currencyName } from "./units"
 
-const { height, width } = Dimensions.get("window");
+const { height, width } = Dimensions.get("window")
 
 class Currency extends Component {
   state = {
@@ -23,7 +23,7 @@ class Currency extends Component {
     unitInUse: "",
     currency: {},
     loaded: false,
-  };
+  }
 
   rates = {
     base: "USD",
@@ -63,217 +63,217 @@ class Currency extends Component {
       USD: 1,
       ZAR: 1,
     },
-  };
+  }
 
   async componentDidMount() {
-    this.rates = await this.getRates();
-    await this.checkData();
-    this.setState({ loaded: true });
+    this.rates = await this.getRates()
+    await this.checkData()
+    this.setState({ loaded: true })
   }
 
   //Read value from keyboard and update values
   updateValue = (val) => {
     if (val.toString().length > 12) {
-      return;
+      return
     }
 
-    let i = new Object();
-    i["currency"] = this.Convert(val);
+    let i = new Object()
+    i["currency"] = this.Convert(val)
 
     //i['currency'][this.state.unitInUse] = this.prepareNumber(val)
 
-    i["value"] = val;
+    i["value"] = val
 
-    this.setState(i);
-  };
+    this.setState(i)
+  }
 
   prepareNumber = (e) => {
-    let val = e.toString();
+    let val = e.toString()
 
-    let [int, dec] = val.split(".");
+    let [int, dec] = val.split(".")
 
-    if (!int) int = "0";
+    if (!int) int = "0"
 
-    let length = int.length;
+    let length = int.length
 
-    let arr = Array.from(int);
+    let arr = Array.from(int)
 
-    let output = new String();
+    let output = new String()
 
-    if (int[0] === "-") length--;
+    if (int[0] === "-") length--
 
-    let aux = parseInt(length / 3);
+    let aux = parseInt(length / 3)
 
-    if (length % 3 === 0) aux--;
+    if (length % 3 === 0) aux--
 
     if (length > 3) {
-      arr.length = arr.length + aux;
+      arr.length = arr.length + aux
 
-      let i = arr.length - 1;
+      let i = arr.length - 1
 
-      let cont = 0;
+      let cont = 0
 
       while (i >= 0) {
         if (cont === 3 && aux > 0) {
-          arr[i] = ",";
-          cont = 0;
-          aux--;
+          arr[i] = ","
+          cont = 0
+          aux--
         } else {
-          arr[i] = arr[i - aux];
-          cont++;
+          arr[i] = arr[i - aux]
+          cont++
         }
-        i--;
+        i--
       }
       arr.map((e) => {
-        output = output + e;
-      });
+        output = output + e
+      })
     } else {
-      output = int;
+      output = int
     }
     if (dec) {
-      output = output + "." + dec;
+      output = output + "." + dec
     }
 
     if (val[val.length - 1] === "." && !dec) {
-      output = output + ".";
+      output = output + "."
     }
 
-    return output;
-  };
+    return output
+  }
 
   truncateValue = (e) => {
-    let i = e.toFixed(2);
-    return this.prepareNumber(i);
-  };
+    let i = e.toFixed(2)
+    return this.prepareNumber(i)
+  }
 
   //Functions to convert values
   Convert = (val) => {
-    let baseCurrencyValue = val / this.rates.rates[this.state.unitInUse];
+    let baseCurrencyValue = val / this.rates.rates[this.state.unitInUse]
 
-    let aux = new Object();
+    let aux = new Object()
 
     Object.keys(this.rates.rates).map((e) => {
-      aux[e] = this.truncateValue(baseCurrencyValue * this.rates.rates[e]);
-    });
+      aux[e] = this.truncateValue(baseCurrencyValue * this.rates.rates[e])
+    })
 
-    return aux;
-  };
+    return aux
+  }
 
   getApi = async () => {
     let response = await axios.get(
       "https://api.exchangeratesapi.io/latest?base=USD"
-    );
-    console.log("consultou a api");
-    return response.data;
-  };
+    )
+    console.log("consultou a api")
+    return response.data
+  }
 
   checkData = async () => {
-    let yesterday;
+    let yesterday
 
     if (new Date().getDay() === 0) {
-      yesterday = new Date(new Date().setHours(-25));
+      yesterday = new Date(new Date().setHours(-25))
     }
     if (new Date().getDay() === 1) {
-      yesterday = new Date(new Date().setHours(-49));
+      yesterday = new Date(new Date().setHours(-49))
     }
 
-    yesterday = new Date(new Date().setHours(-1));
+    yesterday = new Date(new Date().setHours(-1))
 
-    let val = new Object();
+    let val = new Object()
 
-    let [year, month, day] = this.rates.date.split("-");
-    let tYear = yesterday.getFullYear();
-    let tMonth = yesterday.getMonth() + 1;
-    let tDay = yesterday.getDate();
+    let [year, month, day] = this.rates.date.split("-")
+    let tYear = yesterday.getFullYear()
+    let tMonth = yesterday.getMonth() + 1
+    let tDay = yesterday.getDate()
 
     if (tYear > +year) {
-      val = await this.getApi();
-      this.rates = val;
-      await this.storeRates(val);
-      return;
+      val = await this.getApi()
+      this.rates = val
+      await this.storeRates(val)
+      return
     }
     if (tYear === +year && tMonth > +month) {
-      val = await this.getApi();
-      this.rates = val;
-      await this.storeRates(val);
-      return;
+      val = await this.getApi()
+      this.rates = val
+      await this.storeRates(val)
+      return
     }
     if (tYear === +year && tMonth === +month && tDay > +day) {
-      val = await this.getApi();
-      this.rates = val;
-      await this.storeRates(val);
-      return;
+      val = await this.getApi()
+      this.rates = val
+      await this.storeRates(val)
+      return
     }
 
-    return;
-  };
+    return
+  }
 
   storeRates = async (value) => {
     try {
-      const jsonValue = JSON.stringify(value);
-      await AsyncStorage.setItem("@storage_Exchange_Rate", jsonValue);
+      const jsonValue = JSON.stringify(value)
+      await AsyncStorage.setItem("@storage_Exchange_Rate", jsonValue)
     } catch (e) {
       // console.log(e)
-      return;
+      return
     }
-  };
+  }
 
   getRates = async () => {
     try {
-      const jsonValue = await AsyncStorage.getItem("@storage_Exchange_Rate");
+      const jsonValue = await AsyncStorage.getItem("@storage_Exchange_Rate")
       if (jsonValue !== null) {
-        let value = JSON.parse(jsonValue);
-        return value;
+        let value = JSON.parse(jsonValue)
+        return value
       } else {
-        return this.rates;
+        return this.rates
       }
     } catch (e) {
       // console.log(e)
-      return;
+      return
     }
-  };
+  }
 
   removeRates = async () => {
     try {
-      await AsyncStorage.removeItem("@storage_Exchange_Rate");
+      await AsyncStorage.removeItem("@storage_Exchange_Rate")
     } catch (e) {
       // console.log(e)
-      return;
+      return
     }
-  };
+  }
 
   //Keyboard Animation
-  translateY = new Animated.Value(0);
+  translateY = new Animated.Value(0)
 
   openKeyboard = () => {
     Animated.timing(this.translateY, {
       toValue: 235,
       duration: 200,
       useNativeDriver: false,
-    }).start();
-  };
+    }).start()
+  }
 
   closeKeyboard = () => {
-    this.setState({ unitInUse: "" });
+    this.setState({ unitInUse: "" })
     Animated.timing(this.translateY, {
       toValue: 0,
       duration: 200,
       useNativeDriver: false,
-    }).start();
-  };
+    }).start()
+  }
 
   onHandlerStateChange = (event) => {
     if (event.nativeEvent.oldState === State.ACTIVE) {
-      let closed = false;
+      let closed = false
 
-      let value = 0;
+      let value = 0
 
-      const { translationY } = event.nativeEvent;
+      const { translationY } = event.nativeEvent
 
       if (translationY >= 80) {
-        this.setState({ unitInUse: "" });
+        this.setState({ unitInUse: "" })
 
-        closed = true;
+        closed = true
       }
 
       Animated.timing(this.translateY, {
@@ -281,12 +281,12 @@ class Currency extends Component {
         duration: 200,
         useNativeDriver: false,
       }).start(() => {
-        value = closed ? 0 : 235;
-        this.translateY.setOffset(0);
-        this.translateY.setValue(value);
-      });
+        value = closed ? 0 : 235
+        this.translateY.setOffset(0)
+        this.translateY.setValue(value)
+      })
     }
-  };
+  }
 
   render() {
     return (
@@ -318,8 +318,8 @@ class Currency extends Component {
                 <TouchableWithoutFeedback
                   key={e}
                   onPress={() => {
-                    this.setState({ value: 0, unitInUse: e });
-                    this.openKeyboard();
+                    this.setState({ value: 0, unitInUse: e })
+                    this.openKeyboard()
                   }}
                 >
                   <View
@@ -385,7 +385,7 @@ class Currency extends Component {
           </View>
         </View>
       </View>
-    );
+    )
   }
 }
 
@@ -448,6 +448,6 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     zIndex: 5,
   },
-});
+})
 
-export default Currency;
+export default Currency
